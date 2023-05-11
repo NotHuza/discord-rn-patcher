@@ -53,8 +53,9 @@ java -jar /tmp/aliucord/tools/apktool.jar d --no-src base.apk
 cd base
 echo "Patching manifest"
 cat 'AndroidManifest.xml' \
+| sed 's/package="com.discord"/package="com.alucordrn"/g' \
 | sed 's/<uses-permission android:maxSdkVersion="23" android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>/<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>\n    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"\/>/g' \
-| sed 's/<application /<application android:usesCleartextTraffic="true" android:debuggable="true" package="com.alucordrn" /g' \
+| sed 's/<application /<application android:usesCleartextTraffic="true" android:debuggable="true" /g' \
 | sed 's/<\/application>/<activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="true" \/>\n<\/application>/g' \
 | sed 's/android:enabled="true" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/android:enabled="false" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/g' \
 | sed 's/<meta-data android:name="com.google.android.nearby.messages.API_KEY"/<meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false"\/>\n<meta-data android:name="com.google.android.nearby.messages.API_KEY"/g' \
