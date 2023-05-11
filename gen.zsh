@@ -53,7 +53,7 @@ java -jar /tmp/aliucord/tools/apktool.jar d --no-src base.apk
 cd base
 echo "Patching manifest"
 cat 'AndroidManifest.xml' 
-| sed 's/<manifest /<manifest package="com.aliucordrn" /n' \
+| sed 's/<manifest /<manifest package="com.aliucordrn" /' \
 | sed 's/<uses-permission android:maxSdkVersion="31" android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>/<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>\n    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"\/>/g' \
 | sed 's/<application /<application android:usesCleartextTraffic="true" android:debuggable="true" /g' \
 | sed 's/<\/application>/<activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="true" \/>\n<\/application>/g' \
