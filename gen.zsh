@@ -19,7 +19,7 @@ wget -nv "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.1.jar"
 
 ## Download hermes native libraries
 cd /tmp/aliucord/downloads
-wget -nv "https://nightly.link/Aliucord/hermes/workflows/ci/0.11.0-aliucord/android.zip" -O /tmp/aliucord/downloads/android.zip
+wget -nv "https://github.com/amsyarasyiq/hermes/releases/download/aliuhermes/android.zip" -O /tmp/aliucord/downloads/android.zip
 unzip android.zip
 
 ## Iterate over all discord architectures to download apks and replace native libs
@@ -52,8 +52,9 @@ wget -nv "https://aliucord.com/download/discord?v=$discordver" -O /tmp/aliucord/
 java -jar /tmp/aliucord/tools/apktool.jar d --no-src base.apk
 cd base
 echo "Patching manifest"
-cat 'AndroidManifest.xml' \
-| sed 's/<uses-permission android:maxSdkVersion="28" android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>/<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>\n    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"\/>/g' \
+cat 'AndroidManifest.xml' 
+| sed 's/<manifest /<manifest package="com.aliucordrn" /n' \
+| sed 's/<uses-permission android:maxSdkVersion="31" android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>/<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"\/>\n    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"\/>/g' \
 | sed 's/<application /<application android:usesCleartextTraffic="true" android:debuggable="true" /g' \
 | sed 's/<\/application>/<activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="true" \/>\n<\/application>/g' \
 | sed 's/android:enabled="true" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/android:enabled="false" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/g' \
