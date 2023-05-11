@@ -12,15 +12,6 @@ fi
 rm -rf /tmp/aliucord
 mkdir -p /tmp/aliucord/downloads
 
-## Download tools
-mkdir /tmp/aliucord/tools
-wget -nv "https://github.com/patrickfav/uber-apk-signer/releases/download/v1.2.1/uber-apk-signer-1.2.1.jar" -O /tmp/aliucord/tools/uber-apk-signer.jar
-wget -nv "https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.6.1.jar" -O /tmp/aliucord/tools/apktool.jar
-
-## Download hermes native libraries
-cd /tmp/aliucord/downloads
-wget -nv "https://github.com/amsyarasyiq/hermes/releases/download/aliuhermes/android.zip" -O /tmp/aliucord/downloads/android.zip
-unzip android.zip
 
 ## Iterate over all discord architectures to download apks and replace native libs
 mkdir /tmp/aliucord/apks/unsigned -p
@@ -34,16 +25,6 @@ for i in {1..$#architectures_url}; do
 	wget -nv "https://aliucord.com/download/discord?v=$discordver&split=config.${architectures_url[i]}" -O "/tmp/aliucord/apks/unsigned/config.${architectures_url[i]}.apk"
 	
         java -jar /tmp/aliucord/tools/apktool.jar empty-framework-dir --force -p com.alucordrn d /tmp/aliucord/apks/unsigned/config.${architectures_url[i]}.apk -o /tmp/aliucord/apks/unsigned/config.${architectures_url[i]}
-
-	
-	# configs need libs/ folder
-	mkdir -p "lib/${architectures_zip[i]}"
-	cp "jni/${architectures_zip[i]}/libhermes.so" "lib/${architectures_zip[i]}/libhermes.so"
-	cp "jni/${architectures_zip[i]}/libc++_shared.so" "lib/${architectures_zip[i]}/libc++_shared.so"
-
-	# Replace libs in config split
-	zip -0u "/tmp/aliucord/apks/unsigned/config.${architectures_url[i]}.apk" "lib/${architectures_zip[i]}/libhermes.so"
-	zip -0u "/tmp/aliucord/apks/unsigned/config.${architectures_url[i]}.apk" "lib/${architectures_zip[i]}/libc++_shared.so"
 done
 
 ## Download AliucordNative
@@ -94,4 +75,42 @@ wget -nv "https://aliucord.com/download/discord?v=$discordver&split=config.hdpi"
 wget -nv "https://aliucord.com/download/discord?v=$discordver&split=config.xxhdpi" -O /tmp/aliucord/apks/unsigned/config.xxhdpi.apk
 
 ## Sign all apks
+#java -jar /tmp/aliucord/tools/uber-apk-signer.jar --apks /tmp/aliucord/apks/unsigned/ --allowResign --out /tmp/aliucord/apks/
+#!/bin/bash
+
+# Replace com.diskord with alucord.com in AndroidManifest.xml for all split APKs
+
+# Path to apktool.jar
+APKTOOL="java -jar /tmp/aliucord/tools/apktool.jar"
+
+# Path to APK file
+APK_FILE="/tmp/aliucord/downloads/base.apk"
+
+# Output directory for APK tool
+OUTPUT_DIR="/tmp/aliucord/apks"
+
+# Extract base APK
+$APKTOOL d $APK_FILE -o $OUTPUT_DIR/base
+
+# Extract split APKs
+for f in $OUTPUT_DIR/config.*.apk; do
+  $APKTOOL d $f -o $OUTPUT_DIR/splits/$(basename "${f%.*}")
+done
+
+# Modify package name in AndroidManifest.xml for all APKs
+sed -i 's/package="com.diskord"/package="alucord.com"/g' $OUTPUT_DIR/*/AndroidManifest.xml
+
+# Repackage APKs
+$APKTOOL b $OUTPUT_DIR/base -o $OUTPUT_DIR/unsigned/base.apk
+for f in $OUTPUT_DIR/splits/*; do
+  $APKTOOL b $f -o $OUTPUT_DIR/unsigned/$(basename "$f")
+done
+
+# Sign all apks
 java -jar /tmp/aliucord/tools/uber-apk-signer.jar --apks /tmp/aliucord/apks/unsigned/ --allowResign --out /tmp/aliucord/apks/
+
+# Clean up
+rm -rf $OUTPUT_DIR/base
+rm -rf $OUTPUT_DIR/splits
+rm -rf $OUTPUT_DIR/unsigned
+
