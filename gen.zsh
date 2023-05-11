@@ -44,6 +44,28 @@ cat 'AndroidManifest.xml' \
 | sed 's/android:enabled="true" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/android:enabled="false" android:exported="false" android:name="com.google.android.gms.analytics.Analytics/g' \
 | sed 's/<meta-data android:name="com.google.android.nearby.messages.API_KEY"/<meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false"\/>\n<meta-data android:name="com.google.android.nearby.messages.API_KEY"/g' \
 > AndroidManifest.xml
+# Replace com.diskord with alucord.com in AndroidManifest.xml for all split APKs
+
+# Path to apktool.jar
+APKTOOL="java -jar /tmp/aliucord/tools/apktool.jar"
+
+# Path to APK file
+APK_FILE="/tmp/aliucord/downloads/base.apk"
+
+# Output directory for APK tool
+OUTPUT_DIR="/tmp/aliucord/apks"
+
+# Extract base APK
+$APKTOOL d $APK_FILE -o $OUTPUT_DIR/base
+
+# Extract split APKs
+for f in $OUTPUT_DIR/config.*.apk; do
+  $APKTOOL d $f -o $OUTPUT_DIR/splits/$(basename "${f%.*}")
+done
+
+# Modify package name in AndroidManifest.xml for all APKs
+sed -i 's/package="com.diskord"/package="alucord.com"/g' $OUTPUT_DIR/*/AndroidManifest.xml
+
 
 for f in ./classes?.dex(On); do
 	OLD_NUM="${f//\.(\/classes|dex)/}"
@@ -76,29 +98,6 @@ wget -nv "https://aliucord.com/download/discord?v=$discordver&split=config.xxhdp
 
 ## Sign all apks
 #java -jar /tmp/aliucord/tools/uber-apk-signer.jar --apks /tmp/aliucord/apks/unsigned/ --allowResign --out /tmp/aliucord/apks/
-#!/bin/bash
-
-# Replace com.diskord with alucord.com in AndroidManifest.xml for all split APKs
-
-# Path to apktool.jar
-APKTOOL="java -jar /tmp/aliucord/tools/apktool.jar"
-
-# Path to APK file
-APK_FILE="/tmp/aliucord/downloads/base.apk"
-
-# Output directory for APK tool
-OUTPUT_DIR="/tmp/aliucord/apks"
-
-# Extract base APK
-$APKTOOL d $APK_FILE -o $OUTPUT_DIR/base
-
-# Extract split APKs
-for f in $OUTPUT_DIR/config.*.apk; do
-  $APKTOOL d $f -o $OUTPUT_DIR/splits/$(basename "${f%.*}")
-done
-
-# Modify package name in AndroidManifest.xml for all APKs
-sed -i 's/package="com.diskord"/package="alucord.com"/g' $OUTPUT_DIR/*/AndroidManifest.xml
 
 # Repackage APKs
 $APKTOOL b $OUTPUT_DIR/base -o $OUTPUT_DIR/unsigned/base.apk
