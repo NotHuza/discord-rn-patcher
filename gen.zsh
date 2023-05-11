@@ -52,8 +52,8 @@ unzip /tmp/aliucord/downloads/AliucordNative.zip
 
 ## Download and patch base apk
 wget -nv "https://aliucord.com/download/discord?v=$discordver" -O /tmp/aliucord/downloads/base.apk
+java -jar /tmp/aliucord/tools/apktool.jar b base.apk
 java -jar /tmp/aliucord/tools/apktool.jar d --no-src base.apk
-
 cd base
 echo "Patching manifest"
 cat 'AndroidManifest.xml' \
@@ -75,7 +75,7 @@ mv classes.dex classes2.dex
 cp /tmp/aliucord/downloads/classes.dex classes.dex
 cd ..
 java -jar /tmp/aliucord/tools/apktool.jar empty-framework-dir --force -p com.alucordrn base
-java -jar /tmp/aliucord/tools/apktool.jar b base
+
 cd base/build/apk
 
 ## Replace all necessary files in base.apk
